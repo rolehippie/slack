@@ -1,0 +1,38 @@
+# Standards: 1.2
+---
+- name: Download repo key
+  shell:
+    cmd: curl -sSL https://packagecloud.io/slacktechnologies/slack/gpgkey | gpg --dearmor --output /usr/share/keyrings/slack-archive-keyring.gpg
+    creates: /usr/share/keyrings/slack-archive-keyring.gpg
+  tags:
+    - slack
+
+- name: Add apt repository
+  apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/slack-archive-keyring.gpg] https://packagecloud.io/slacktechnologies/slack/debian/ jessie main
+    filename: slack
+    update_cache: True
+    state: present
+  tags:
+    - slack
+
+- name: Install required packages
+  loop:
+    - slack-desktop
+  package:
+    name: "{{ item }}"
+    state: present
+  tags:
+    - slack
+
+- name: Drop shitty files
+  loop:
+    - /etc/default/slack
+    - /etc/cron.daily/slack
+  file:
+    path: "{{ item }}"
+    state: absent
+  tags:
+    - slack
+
+...
